@@ -138,7 +138,7 @@ save_ancova_plot_png(penguins_plot_data, "figures/fig01_powerpoint.png",
 
 # Save the plot for a poster
 save_ancova_plot_png(penguins_plot_data, "figures/fig01_poster.png", 
-                      size = 30, res = 600, scaling = 2.8)
+                      size = 30, res = 600, scaling = 2.4)
 
 # Save the plot as a vector (no resolution needed)
 save_ancova_plot_svg(penguins_plot_data, "figures/fig01_vector.svg", 
