@@ -1,0 +1,146 @@
+ ---
+title: "penguin_assignment.r"
+purpose: will load and clean 'Palmer Penguins' data, run an ANCOVA test on body mass and species against culmen length, and plot the figure for this. 
+---
+
+## Load the packages
+```{r}
+library(palmerpenguins)
+library(tidyverse)
+library(ggplot2)
+suppressPackageStartupMessages(library(janitor))
+suppressPackageStartupMessages(library(dplyr))
+library(tidyr)
+library(ragg)
+library(svglite)
+```
+
+## Set working directory 
+```{r}
+setwd("Library/Mobile Documents/com~apple~CloudDocs/R Year 3/reproducible-figures/penguin-assignment")
+```
+
+## Define Functions
+
+# Cleaning
+```{r}
+# Clean column names, remove empty rows, remove columns called comment and delta
+cleaning <- function(data_raw){
+  data_raw %>%
+    clean_names() %>%
+    remove_empty(c("rows", "cols")) %>%
+    select(-starts_with("delta")) %>%
+    select(-comments)
+}
+
+# Subset the data to include only the penguins which are not NA for culmen length and body mass 
+remove_empty_culmen_length <- function(penguins_clean){
+  penguins_clean %>%
+    filter(!is.na(culmen_length_mm)) %>%
+    filter(!is.na(body_mass_g)) %>%
+    select(species, culmen_length_mm, body_mass_g)
+}
+
+```
+
+# Plot
+```{r}
+# Plots the ancova model for independent variables body mass and species against dependent variable culmen length  
+plot_ancova_figure <- function(penguins_plot_data){
+  penguins_ancova_data %>%
+    ggplot(aes(x = body_mass_g, y = culmen_length_mm, color = species)) + 
+    geom_point(aes(shape = species), size = 0.9) + 
+    geom_smooth(method = "lm", aes(fill = species), alpha = 0.2) +
+    scale_color_manual(values = c("darkorange","#66CCEE","#AA3377"))+
+    labs(x = "Body mass (g)", y = "Culmen length (mm)", title = "ANCOVA: body mass/species against culmen length") +
+  theme_bw() +
+  theme(legend.position="bottom") 
+}
+```
+
+# Saving figures
+```{r}
+# Save the plot as a png and define the size, resolution, and scaling
+save_ancova_plot_png <- function(penguins_plot_data, filename, size, res, scaling){
+  agg_png(filename, width = size, 
+                    height = size, 
+                    units = "cm", 
+                    res = res, 
+                    scaling = scaling)
+  penguin_ancova_figure <- plot_ancova_figure(penguins_plot_data)
+  print(penguins_ancova_figure)
+  dev.off()
+}
+
+# Save plot as a svg and define the size, resolution and scaling 
+save_ancova_plot_svg <- function(penguins_plot_data, filename, size, scaling){
+    size_inches = size/2.54
+    svglite(filename, width = size_inches, height = size_inches, scaling = scaling)
+    penguin_ancova_figure <- plot_ancova_figure(penguins_plot_data)
+    print(penguins_ancova_figure)
+    dev.off()
+}
+```
+
+## Load the data 
+```{r}
+penguins_raw <- read.csv("data_raw/penguins_raw.csv")
+```
+
+## Clean the data 
+```{r}
+# Fix column names, remove empty rows, remove columns called comment and delta 
+penguins_clean <- cleaning(penguins_raw)
+
+# Save the cleaned data 
+write.csv(penguins_clean, "data_clean/penguins_clean.csv")
+
+# Subset the data to include species, culmen length and body mass and remove penguins with NA culmen length and body mass 
+penguins_ancova_data <- remove_empty_culmen_length(penguins_clean)
+
+# Simplify the names of the penguin species 
+penguins_plot_data <- penguins_ancova_data
+penguins_ancova_data$species <- word(penguins_ancova_data$species, 1)
+```
+
+## Fit the model 
+```{r}
+# Run the model
+penguins_ancova <- aov(culmen_length_mm ~ body_mass_g + species + body_mass_g*species, penguins_ancova_data)
+
+# View the model results
+summary(penguins_ancova)
+```
+
+# Test assumptions of the model - check for homogeneity of variance and normality
+```{r}
+plot(penguins_ancova)
+```
+
+## Plot the data 
+```{r}
+# Plot the ancova model 
+
+penguins_ancova_figure <- plot_ancova_figure(penguins_plot_data)
+penguins_ancova_figure
+```
+
+## Save Figures
+
+```{r}
+# Save the plot for a report
+save_ancova_plot_png(penguins_plot_data, "figures/fig01_report.png", 
+                      size = 15, res = 600, scaling = 0.5)
+
+# Save the plot for a presentation
+save_ancova_plot_png(penguins_plot_data, "figures/fig01_powerpoint.png", 
+                      size = 15, res = 600, scaling = 1.2)
+
+# Save the plot for a poster
+save_ancova_plot_png(penguins_plot_data, "figures/fig01_poster.png", 
+                      size = 30, res = 600, scaling = 2.8)
+
+# Save the plot as a vector (no resolution needed)
+save_ancova_plot_svg(penguins_plot_data, "figures/fig01_vector.svg", 
+                      size = 15, scaling = 1)
+```
