@@ -1,5 +1,4 @@
  ---
-title: "penguin_assignment.r"
 purpose: will load and clean 'Palmer Penguins' data, run an ANCOVA test on body mass and species against culmen length, and plot the figure for this. 
 ---
 
