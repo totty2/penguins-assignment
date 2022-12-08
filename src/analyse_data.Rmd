@@ -16,7 +16,8 @@ library(svglite)
 
 ## Set working directory 
 ```{r}
-setwd("Library/Mobile Documents/com~apple~CloudDocs/R Year 3/reproducible-figures/penguin-assignment")
+# e.g. my directory:
+# setwd("Library/Mobile Documents//R_Year_3/reproducible-figures/penguin-assignment")
 ```
 
 ## Define Functions
